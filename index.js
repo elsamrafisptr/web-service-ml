@@ -15,10 +15,15 @@ const MODEL_PATH = 'model.json';
 let model;
 
 async function loadModel() {
+    const tempModelPath = path.join(__dirname, 'temp_model.json');
+
     const [modelFile] = await storage.bucket(BUCKET_NAME).file(MODEL_PATH).download();
-    const buffer = Buffer.from(modelFile);
-    model = await tf.loadGraphModel(tf.io.browserFiles([new File([buffer], 'model.json')]));
+    fs.writeFileSync(tempModelPath, modelFile);
+
+    model = await tf.loadGraphModel(`file://${tempModelPath}`);
     console.log('Model loaded successfully.');
+
+    fs.unlinkSync(tempModelPath);
 }
 
 const init = async () => {
