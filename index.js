@@ -5,15 +5,13 @@ const { Storage } = require('@google-cloud/storage');
 const { Firestore } = require('@google-cloud/firestore');
 const { v4: uuidv4 } = require('uuid');
 
-const upload = multer({ limits: { fileSize: 1000000 } }); // Maks file 1MB
+const upload = multer({ limits: { fileSize: 1000000 } });
 
-// Inisialisasi Firestore
 const firestore = new Firestore();
 
-// Load model dari Cloud Storage
 const storage = new Storage();
-const BUCKET_NAME = 'bucket-model-name'; // Ganti dengan nama bucket Anda
-const MODEL_PATH = 'model/model.json'; // Path model
+const BUCKET_NAME = 'model-storage-elsamrafisptr'; 
+const MODEL_PATH = 'model.json';
 let model;
 
 async function loadModel() {
@@ -29,7 +27,6 @@ const init = async () => {
         host: '0.0.0.0',
     });
 
-    // Endpoint untuk prediksi
     server.route({
         method: 'POST',
         path: '/predict',
@@ -52,7 +49,6 @@ const init = async () => {
                     }).code(400);
                 }
 
-                // Validasi ukuran file
                 if (image._data.length > 1000000) {
                     return h.response({
                         status: 'fail',
@@ -60,7 +56,6 @@ const init = async () => {
                     }).code(413);
                 }
 
-                // Load gambar untuk prediksi
                 const buffer = image._data;
                 const decodedImage = tf.node.decodeImage(buffer, 3);
                 const resizedImage = tf.image.resizeBilinear(decodedImage, [224, 224]).expandDims(0);
@@ -74,7 +69,6 @@ const init = async () => {
                     createdAt: new Date().toISOString(),
                 };
 
-                // Simpan ke Firestore
                 await firestore.collection('predictions').doc(response.id).set(response);
 
                 return h.response({
