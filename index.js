@@ -7,7 +7,9 @@ const { v4: uuidv4 } = require("uuid");
 
 const upload = multer({ limits: { fileSize: 1000000 } });
 
-const firestore = new Firestore();
+const firestore = new Firestore({
+  scopes: ["https://www.googleapis.com/auth/datastore"],
+});
 const storage = new Storage();
 const BUCKET_NAME = "model-storage-elsamrafisptr";
 const MODEL_PATH = "model.json";
