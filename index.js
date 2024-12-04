@@ -1,6 +1,6 @@
 const Hapi = require('@hapi/hapi');
 const multer = require('multer');
-const tf = require('@tensorflow/tfjs');
+const tf = require('@tensorflow/tfjs-node');
 const { Storage } = require('@google-cloud/storage');
 const { Firestore } = require('@google-cloud/firestore');
 const { v4: uuidv4 } = require('uuid');
