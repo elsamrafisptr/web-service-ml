@@ -32,7 +32,14 @@ const handlePrediction = async (payload) => {
 };
 
 const handleGetHistories = async () => {
-  return await fetchPredictions();
+  const predictionsSnapshot = await fetchPredictions();
+  const predictions = predictionsSnapshot.map((doc) => doc.data());
+
+  if (!predictions || predictions.length === 0) {
+    return [];
+  }
+
+  return predictions;
 };
 
 module.exports = { handlePrediction, handleGetHistories };
