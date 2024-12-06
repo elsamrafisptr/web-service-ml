@@ -1,4 +1,4 @@
-require("dotenv").config(); // Load environment variables
+require("dotenv").config();
 const Hapi = require("@hapi/hapi");
 const routes = require("./routes");
 const loadModel = require("../services/loadModel");
