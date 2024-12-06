@@ -1,17 +1,10 @@
 const { Firestore } = require("@google-cloud/firestore");
-const firestore = new Firestore();
 
-const storePrediction = async (data) => {
-  await firestore.collection("predictions").doc(data.id).set(data);
-};
+async function storeData(id, data) {
+  const db = new Firestore();
 
-const fetchPredictions = async () => {
-  try {
-    const snapshot = await firestore.collection("predictions").get();
-    return snapshot.docs.map((doc) => doc.data());
-  } catch (error) {
-    throw new Error("Failed to fetch predictions from Firestore");
-  }
-};
+  const predictCollection = db.collection("predictions");
+  return predictCollection.doc(id).set(data);
+}
 
-module.exports = { storePrediction, fetchPredictions };
+module.exports = storeData;

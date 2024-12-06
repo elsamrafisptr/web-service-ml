@@ -1,21 +1,34 @@
 const tf = require("@tensorflow/tfjs-node");
+const InputError = require("../exceptions/InputError");
 
-const predict = async (imageBuffer) => {
-  const decodedImage = tf.node.decodeImage(imageBuffer, 3);
-  const resizedImage = tf.image
-    .resizeBilinear(decodedImage, [224, 224])
-    .expandDims(0);
-  const model = await require("./loadModel")();
-  const prediction = await model.predict(resizedImage).data();
-  const result = prediction[0] > 0.5 ? "Cancer" : "Non-cancer";
+async function predictClassification(model, image) {
+  try {
+    const tensor = tf.node
+      .decodeJpeg(image)
+      .resizeNearestNeighbor([224, 224])
+      .expandDims()
+      .toFloat();
 
-  return {
-    result,
-    suggestion:
-      result === "Cancer"
-        ? "Segera periksa ke dokter!"
-        : "Penyakit kanker tidak terdeteksi.",
-  };
-};
+    const prediction = model.predict(tensor);
+    const score = await prediction.data();
+    const confidenceScore = Math.max(...score) * 100;
 
-module.exports = predict;
+    let result, suggestion;
+
+    if (confidenceScore > 50) {
+      result = "Cancer";
+      suggestion =
+        "Segera periksa ke dokter! Penting untuk melakukan pemeriksaan lebih lanjut untuk memastikan diagnosis";
+    } else {
+      result = "Non-cancer";
+      suggestion =
+        "Anda sehat! Tetap jaga pola hidup sehat untuk menjaga kesehatan Anda";
+    }
+
+    return { result, suggestion };
+  } catch (error) {
+    throw new InputError(`Terjadi kesalahan input: ${error.message}`);
+  }
+}
+
+module.exports = predictClassification;

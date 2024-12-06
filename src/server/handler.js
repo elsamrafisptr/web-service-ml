@@ -1,45 +1,56 @@
-const { v4: uuidv4 } = require("uuid");
-const predict = require("../services/inferenceService");
-const { storePrediction, fetchPredictions } = require("../services/storeData");
-const InputError = require("../exceptions/InputError");
+const predictClassification = require("../services/inferenceService");
+const crypto = require("crypto");
+const storeData = require("../services/storeData");
+const { Firestore } = require("@google-cloud/firestore");
 
-const handlePrediction = async (payload) => {
-  const { image } = payload;
+async function postPredictHandler(request, h) {
+  const { image } = request.payload;
+  const { model } = request.server.app;
 
-  if (!image || !image.hapi || image.hapi.filename === "") {
-    throw new InputError("File tidak ditemukan", 400);
-  }
+  const { result, suggestion } = await predictClassification(model, image);
+  const id = crypto.randomUUID();
+  const createdAt = new Date().toISOString();
 
-  if (image._data.length > 1000000) {
-    throw new InputError(
-      "Payload content length greater than maximum allowed: 1000000",
-      413
-    );
-  }
-
-  const buffer = image._data;
-  const inferenceResult = await predict(buffer);
-
-  const response = {
-    id: uuidv4(),
-    ...inferenceResult,
-    createdAt: new Date().toISOString(),
+  const data = {
+    id: id,
+    result: result,
+    suggestion: suggestion,
+    createdAt: createdAt,
   };
 
-  await storePrediction(response);
+  await storeData(id, data);
 
+  const response = h.response({
+    status: "success",
+    message: "Model is predicted successfully",
+    data: data,
+  });
+
+  response.code(201);
   return response;
-};
+}
 
-const handleGetHistories = async () => {
-  const predictionsSnapshot = await fetchPredictions();
-  const predictions = predictionsSnapshot.map((doc) => doc.data());
+async function getHistoriesHandler(request, h) {
+  const db = new Firestore();
+  const predictCollection = db.collection("predictions");
+  const predictSnapshot = await predictCollection.get();
 
-  if (!predictions || predictions.length === 0) {
-    return [];
-  }
+  const data = [];
 
-  return predictions;
-};
+  predictSnapshot.forEach((doc) => {
+    const history = {
+      id: doc.id,
+      history: doc.data(),
+    };
+    data.push(history);
+  });
 
-module.exports = { handlePrediction, handleGetHistories };
+  const response = h.response({
+    status: "success",
+    data: data,
+  });
+  response.code(200);
+  return response;
+}
+
+module.exports = { postPredictHandler, getHistoriesHandler };
