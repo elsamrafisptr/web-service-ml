@@ -2,7 +2,7 @@ const ClientError = require("../exceptions/ClientError");
 
 class InputError extends ClientError {
   constructor(message) {
-    super(message, 400);
+    super(message);
     this.name = "InputError";
   }
 }

@@ -1,4 +1,5 @@
 const { handlePrediction, handleGetHistories } = require("./handler");
+const InputError = require("../exceptions/InputError");
 
 module.exports = [
   {
@@ -23,13 +24,12 @@ module.exports = [
           })
           .code(201);
       } catch (error) {
-        return h
-          .response({
-            status: "fail",
-            message:
-              error.message || "Terjadi kesalahan dalam melakukan prediksi",
-          })
-          .code(error.statusCode || 400);
+        const statusCode = error instanceof InputError ? error.statusCode : 400;
+        const message =
+          error instanceof InputError
+            ? error.message
+            : "Terjadi kesalahan dalam melakukan prediksi";
+        return h.response({ status: "fail", message }).code(statusCode);
       }
     },
   },

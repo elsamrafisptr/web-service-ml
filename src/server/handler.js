@@ -7,12 +7,13 @@ const handlePrediction = async (payload) => {
   const { image } = payload;
 
   if (!image || !image.hapi || image.hapi.filename === "") {
-    throw new InputError("File tidak ditemukan");
+    throw new InputError("File tidak ditemukan", 400);
   }
 
   if (image._data.length > 1000000) {
     throw new InputError(
-      "Payload content length greater than maximum allowed: 1000000"
+      "Payload content length greater than maximum allowed: 1000000",
+      413
     );
   }
 

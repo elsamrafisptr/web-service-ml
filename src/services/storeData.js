@@ -6,8 +6,12 @@ const storePrediction = async (data) => {
 };
 
 const fetchPredictions = async () => {
-  const predictions = await firestore.collection("predictions").get();
-  return predictions.docs.map((doc) => doc.data());
+  try {
+    const predictionsSnapshot = await firestore.collection("predictions").get();
+    return predictionsSnapshot.docs.map((doc) => doc.data());
+  } catch (error) {
+    throw new Error("Failed to fetch predictions from Firestore");
+  }
 };
 
 module.exports = { storePrediction, fetchPredictions };
